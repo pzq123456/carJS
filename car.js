@@ -1,4 +1,6 @@
 import { Controls } from "./controls.js";
+import { Sensor } from "./sensor.js";
+
 export class Car{
     constructor(x,y,width,height,color){
         this.x = x;
@@ -14,11 +16,13 @@ export class Car{
 
         this.angle = 0;
 
+        this.sensors = new Sensor(this);
         this.controls = new Controls();
     }
 
     update(){
         this.#move();
+        this.sensors.update();
     }
 
     #move(){
@@ -63,23 +67,42 @@ export class Car{
         ctx.save();
         ctx.translate(this.x, this.y);
         ctx.rotate(-this.angle);
+
         ctx.fillStyle = this.color;
         ctx.fillRect(
             - this.width/2,
             - this.height/2,
             this.width,
             this.height);
-
+        
         // 速度为正时，车头标注红色
         if(this.speed > 0){
             ctx.fillStyle = 'red';
             ctx.fillRect(-this.width/2, -this.height/2,this.width, 2);
+            
+            // 绘制车灯光锥 车头方向
+            // ctx.fillStyle = 'rgba(255,0,0,0.5)';
+            // ctx.beginPath();
+            // ctx.moveTo(0,0);
+            // ctx.lineTo(100, -100);
+            // ctx.lineTo(-100, -100);
+            // ctx.closePath();
+            // ctx.fill();
+
         }
 
         // 速度为负时，车尾标注蓝色
         if(this.speed < 0){
             ctx.fillStyle = 'blue';
             ctx.fillRect(-this.width/2, this.height/2 - 2,this.width, 2);
+            // 绘制车灯光锥 车尾方向
+            // ctx.fillStyle = 'rgba(0,0,255,0.5)';
+            // ctx.beginPath();
+            // ctx.moveTo(0,0);
+            // ctx.lineTo(100, 100);
+            // ctx.lineTo(-100, 100);
+            // ctx.closePath();
+            // ctx.fill();
         }
 
         // // 标注车速
@@ -87,9 +110,9 @@ export class Car{
         // ctx.font = '20px Arial';
         // ctx.fillText(`Speed: ${this.speed.toFixed(2)}`, -this.width/2, -this.height/2 - 10);
 
-
-
-
         ctx.restore();
+        
+        this.sensors.draw(ctx);
+
     }
 }
