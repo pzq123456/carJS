@@ -20,9 +20,9 @@ export class Car{
         this.controls = new Controls();
     }
 
-    update(){
+    update(roadBorders){
         this.#move();
-        this.sensors.update();
+        this.sensors.update(roadBorders);
     }
 
     #move(){

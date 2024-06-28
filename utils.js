@@ -10,8 +10,12 @@ export function getIntersection(A,B,C,D){
     if(bottom != 0){
         const t = tTop / bottom;
         const u = uTop / bottom;
-        if(t > 0 && t < 1 && u > 0 && u < 1){
-            return {x: A.x + t * (B.x - A.x), y: A.y + t * (B.y - A.y)};
+        if(t >= 0 && t <= 1 && u >= 0 && u <= 1){
+            return {
+                x: lerp(A.x, B.x, t),
+                y: lerp(A.y, B.y, t),
+                offset: t
+            }
         }
     } // parallel lines
     return null;

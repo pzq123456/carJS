@@ -14,7 +14,7 @@ car.draw(ctx);
 // game loop
 gameLoop();
 function gameLoop(){
-    car.update();
+    car.update(road.borders);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
     ctx.translate(0, -car.y + window.innerHeight*0.7);
