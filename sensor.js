@@ -85,9 +85,9 @@ export class Sensor{
                 ctx.lineTo(this.readings[i].x, this.readings[i].y);
                 ctx.stroke();
 
-                ctx.fillStyle = 'blue';
+                ctx.fillStyle = 'orange';
                 ctx.beginPath();
-                ctx.arc(this.readings[i].x, this.readings[i].y, 5, 0, Math.PI * 2);
+                ctx.arc(this.readings[i].x, this.readings[i].y, 2, 0, Math.PI * 2);
                 ctx.fill();
             
 
