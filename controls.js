@@ -1,11 +1,19 @@
 export class Controls{
-    constructor(){
+    constructor(controlType ){
         this.up = false;
         this.down = false;
         this.left = false;
         this.right = false;
-
-        this.#addEventListeners();
+        this.nitro = false; // 氮气加速
+        switch(controlType){
+            case 'KEYS':
+                this.#addEventListeners();
+                break;
+            case 'DUMMY':
+                this.up = true;
+                break;
+        }
+        // this.#addEventListeners();
     }
 
     #addEventListeners(){
@@ -23,6 +31,15 @@ export class Controls{
                 case 'ArrowRight':
                     this.right = true;
                     break;
+                // nitro space
+                case ' ':
+                    this.nitro = true;
+                    break;
+                // reset the game
+                case 'r':
+                    location.reload();
+                    break;
+                
             }
 
         });
@@ -40,6 +57,10 @@ export class Controls{
                     break;
                 case 'ArrowRight':
                     this.right = false;
+                    break;
+                // nitro space
+                case ' ':
+                    this.nitro = false;
                     break;
             }
 

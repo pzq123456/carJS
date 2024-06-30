@@ -3,35 +3,51 @@ import { Sensor } from "./sensor.js";
 import { polysIntersect } from "./utils.js";
 
 export class Car{
-    constructor(x,y,width,height,color){
+    constructor(x,y,width,height,controlType,maxSpeed = 10){
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
-        this.color = color;
+        if(controlType == "KEYS"){
+            this.color = 'black';
+        }else{
+            this.color = 'darkgray';
+        }
 
         this.speed = 0;
-        this.acceleration = 0.2;
-        this.maxSpeed = 10;
+        this.acceleration = 0.1;
+        this.maxSpeed = maxSpeed;
         this.friction = 0.05;
 
         this.angle = 0;
 
-        this.sensors = new Sensor(this);
-        this.controls = new Controls();
+        if(controlType !== "DUMMY"){
+            this.sensors = new Sensor(this);
+        }
+        this.controls = new Controls(controlType );
         this.polygon = this.#createPolygon();
     }
 
-    update(roadBorders){
-        this.#move();
-        this.polygon = this.#createPolygon();
-        this.damaged = this.#assessDamage(roadBorders);
-        this.sensors.update(roadBorders);
-    }
+    update(roadBorders,traffic){
+        if(!this.damaged){
+            this.#move();
+            this.polygon = this.#createPolygon();
+            this.damaged = this.#assessDamage(roadBorders,traffic);
+            this.speed = this.damaged ? 0 : this.speed;
+        }
+        if(this.sensors){
+            this.sensors.update(roadBorders,traffic);
+        }
+    } 
 
-    #assessDamage(roadBorders){
+    #assessDamage(roadBorders,traffic){
         for(let i = 0; i < roadBorders.length; i++){
             if(polysIntersect(this.polygon, roadBorders[i])){
+                return true;
+            }
+        }
+        for(let i = 0; i < traffic.length; i++){
+            if(polysIntersect(this.polygon, traffic[i].polygon)){
                 return true;
             }
         }
@@ -65,18 +81,17 @@ export class Car{
 
     #move(){
         if(this.controls.up){
-            this.speed += this.acceleration;
+            if(this.controls.nitro){
+                this.speed = this.speed < this.maxSpeed ? this.speed + this.acceleration * 2 : this.speed;
+            }else{
+                this.speed = this.speed < this.maxSpeed ? this.speed + this.acceleration : this.speed;
+            }
         }
         if(this.controls.down){
-            this.speed -= this.acceleration;
+            // 倒车时不支持 nitro 氮气加速
+            this.speed = this.speed > -this.maxSpeed ? this.speed - this.acceleration : this.speed;
         }
 
-        if(this.speed > this.maxSpeed){
-            this.speed = this.maxSpeed;
-        }
-        if(this.speed < -this.maxSpeed/2){
-            this.speed = -this.maxSpeed/2;
-        }
         if(this.speed > 0){
             this.speed -= this.friction;
         }
@@ -105,6 +120,17 @@ export class Car{
 
         if(this.damaged){
             ctx.fillStyle = 'gray';
+            // 红色描边
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(this.polygon[0].x, this.polygon[0].y);
+            for(let i = 1; i < this.polygon.length; i++){
+                ctx.lineTo(this.polygon[i].x, this.polygon[i].y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+
         }else{
             ctx.fillStyle = this.color;
         }
@@ -138,20 +164,43 @@ export class Car{
             ctx.stroke();
         }
 
+        if(this.controls.nitro){
+            ctx.fillStyle = 'red';
+            ctx.font = '20px Arial';
+            ctx.fillText('NITRO', this.x + 20, this.y + 60);
+            // 车尾 添加 表示速度的线条 速度越快，线条越长
+            ctx.strokeStyle = 'rgba(0,255,255,0.5)';
+            ctx.beginPath();
+            ctx.moveTo(this.polygon[2].x, this.polygon[2].y);
+            ctx.lineTo(this.polygon[2].x + this.speed * 10 * Math.sin(this.angle), this.polygon[2].y + this.speed * 10 * Math.cos(this.angle));
+            ctx.stroke();
+            // 反向延长
+            ctx.beginPath();
+            ctx.moveTo(this.polygon[3].x, this.polygon[3].y);
+            ctx.lineTo(this.polygon[3].x + this.speed * 10 * Math.sin(this.angle), this.polygon[3].y + this.speed * 10 * Math.cos(this.angle));
+            ctx.stroke();
+
+
+
+        }
+
         // Debug: 标注车速 及 位置 及 角度
         ctx.fillStyle = 'black';
         ctx.font = '20px Arial';
-        ctx.fillText(`    Speed: ${this.speed.toFixed(2)}`, this.x, this.y);
-        ctx.fillText(`    Position: (${this.x.toFixed(2)}, ${this.y.toFixed(2)})`, this.x, this.y + 20);
-        ctx.fillText(`    Angle: ${this.angle.toFixed(2)}`, this.x, this.y + 40);
+        ctx.fillText(`Speed: ${this.speed.toFixed(2)}`, this.x + 20, this.y);
+        ctx.fillText(`Position: (${this.x.toFixed(2)}, ${this.y.toFixed(2)})`, this.x + 20, this.y + 20);
+        ctx.fillText(`Angle: ${this.angle.toFixed(2)}`, this.x + 20, this.y + 40);
         if(this.damaged){
             ctx.fillStyle = 'red';
             ctx.font = '20px Arial';
-            ctx.fillText(`    Damaged`, this.x, this.y + 60);
+            ctx.fillText(`Damaged`, this.x + 20, this.y + 60);
         }
 
         // draw sensors
-        this.sensors.draw(ctx);
+        // this.sensors.draw(ctx);
+        if(this.sensors){
+            this.sensors.draw(ctx);
+        }
 
     }
 }
