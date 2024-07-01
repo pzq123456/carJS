@@ -7,8 +7,8 @@ export class Road{
         this.left = this.x - this.width/2;
         this.right = this.x + this.width/2;
 
-        this.top = -10000;
-        this.bottom = 10000;
+        this.top = -100000;
+        this.bottom = 100000;
 
         const topLeft = {x: this.left, y: this.top};
         const topRight = {x: this.right, y: this.top};

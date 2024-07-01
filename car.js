@@ -1,6 +1,7 @@
 import { Controls } from "./controls.js";
 import { Sensor } from "./sensor.js";
 import { polysIntersect } from "./utils.js";
+import { NerualNetwork } from "./network.js";
 
 export class Car{
     constructor(x,y,width,height,controlType,maxSpeed = 10){
@@ -10,6 +11,8 @@ export class Car{
         this.height = height;
         if(controlType == "KEYS"){
             this.color = 'black';
+        }else if(controlType == "AI"){
+            this.color = 'forestgreen';
         }else{
             this.color = 'darkgray';
         }
@@ -21,11 +24,18 @@ export class Car{
 
         this.angle = 0;
 
+        this.useBrain = controlType == "AI";
+
         if(controlType !== "DUMMY"){
             this.sensors = new Sensor(this);
+            this.brain = new NerualNetwork(
+                [this.sensors.rayCount,6,4]
+            );
         }
         this.controls = new Controls(controlType );
         this.polygon = this.#createPolygon();
+
+        this.tailPoints = this.tailPoints || [];
     }
 
     update(roadBorders,traffic){
@@ -37,6 +47,19 @@ export class Car{
         }
         if(this.sensors){
             this.sensors.update(roadBorders,traffic);
+            const offset = this.sensors.readings.map(
+                r => r==null ? 0 : 1 - r.offset
+            );
+            const output = NerualNetwork.feedForward(offset, this.brain);
+            // console.log(output);
+
+            if(this.useBrain){
+                this.controls.up = output[0];
+                this.controls.down = output[1];
+                this.controls.left = output[2];
+                this.controls.right = output[3];
+                // this.controls.nitro = output[4];
+            }
         }
     } 
 
@@ -116,6 +139,39 @@ export class Car{
         this.y -= this.speed * Math.cos(this.angle);
     }
 
+    // 定义一个数组来保存尾迹点
+
+
+    drawTail(ctx, tailPoints) {
+        // 若速度为0 尾迹为灰色
+        if (this.controls.up || this.controls.down) {
+            // 逐个绘制尾迹点 尾迹点的透明度逐渐降低 半径逐渐增大
+            for (let i = 0; i < tailPoints.length; i++) {
+                const point = tailPoints[i];
+                ctx.fillStyle = `rgba(0,255,255,${point.opacity})`;
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 10 - i * 0.1, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+    }
+
+    updateTail(tailPoints, newPoint, maxLength) {
+        // 添加新的尾迹点
+        tailPoints.push(newPoint);
+
+        // 控制尾迹的最大长度
+        if (tailPoints.length > maxLength) {
+            tailPoints.shift();
+        }
+
+        // 逐渐淡化旧的尾迹点
+        for (let i = 0; i < tailPoints.length; i++) {
+            tailPoints[i].opacity = (i + 1) / tailPoints.length;
+        }
+    }
+
+
     draw(ctx){
 
         if(this.damaged){
@@ -168,20 +224,13 @@ export class Car{
             ctx.fillStyle = 'red';
             ctx.font = '20px Arial';
             ctx.fillText('NITRO', this.x + 20, this.y + 60);
-            // 车尾 添加 表示速度的线条 速度越快，线条越长
-            ctx.strokeStyle = 'rgba(0,255,255,0.5)';
-            ctx.beginPath();
-            ctx.moveTo(this.polygon[2].x, this.polygon[2].y);
-            ctx.lineTo(this.polygon[2].x + this.speed * 10 * Math.sin(this.angle), this.polygon[2].y + this.speed * 10 * Math.cos(this.angle));
-            ctx.stroke();
-            // 反向延长
-            ctx.beginPath();
-            ctx.moveTo(this.polygon[3].x, this.polygon[3].y);
-            ctx.lineTo(this.polygon[3].x + this.speed * 10 * Math.sin(this.angle), this.polygon[3].y + this.speed * 10 * Math.cos(this.angle));
-            ctx.stroke();
 
+            // 更新和绘制尾迹
+            this.updateTail(this.tailPoints, { x: this.polygon[2].x, y: this.polygon[2].y }, 50);
+            this.drawTail(ctx, this.tailPoints);
 
-
+            this.updateTail(this.tailPoints, { x: this.polygon[3].x, y: this.polygon[3].y }, 50);
+            this.drawTail(ctx, this.tailPoints);
         }
 
         // Debug: 标注车速 及 位置 及 角度
@@ -196,8 +245,6 @@ export class Car{
             ctx.fillText(`Damaged`, this.x + 20, this.y + 60);
         }
 
-        // draw sensors
-        // this.sensors.draw(ctx);
         if(this.sensors){
             this.sensors.draw(ctx);
         }
