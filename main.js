@@ -33,6 +33,7 @@ function gameLoop(){
     });
     car.update(road.borders,traffic);
     carCtx.clearRect(0, 0, carCanvas.width, carCanvas.height);
+    networkCtx.clearRect(0, 0, networkCanvas.width, networkCanvas.height);
     carCtx.save();
     carCtx.translate(0, -car.y + window.innerHeight*0.7);
 

@@ -32,9 +32,9 @@ export class Car{
                 [this.sensors.rayCount,6,4]
             );
         }
-        this.controls = new Controls(controlType );
+        this.controls = new Controls(controlType); 
         this.polygon = this.#createPolygon();
-
+ 
         this.tailPoints = this.tailPoints || [];
     }
 
@@ -55,9 +55,10 @@ export class Car{
 
             if(this.useBrain){
                 this.controls.up = output[0];
-                this.controls.down = output[1];
-                this.controls.left = output[2];
-                this.controls.right = output[3];
+                this.controls.left = output[1];
+                this.controls.right = output[2];
+                this.controls.down = output[3];
+
                 // this.controls.nitro = output[4];
             }
         }
@@ -105,7 +106,7 @@ export class Car{
     #move(){
         if(this.controls.up){
             if(this.controls.nitro){
-                this.speed = this.speed < this.maxSpeed ? this.speed + this.acceleration * 2 : this.speed;
+                this.speed = this.speed < this.maxSpeed ? this.speed + this.acceleration * 20 : this.speed;
             }else{
                 this.speed = this.speed < this.maxSpeed ? this.speed + this.acceleration : this.speed;
             }
@@ -128,10 +129,20 @@ export class Car{
         // if speed is 0, don't update the angle
         if(this.speed != 0){
             if(this.controls.left){
-                this.angle += 0.01;
+                this.angle += 0.03;
             }
             if(this.controls.right){
+                this.angle -= 0.03;
+            }
+        }
+
+        // 方向自动回正
+        if(this.speed > 0){
+            if(this.angle > 0){
                 this.angle -= 0.01;
+            }
+            if(this.angle < 0){
+                this.angle += 0.01;
             }
         }
 
