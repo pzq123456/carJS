@@ -29,7 +29,7 @@ export class Car{
         if(controlType !== "DUMMY"){
             this.sensors = new Sensor(this);
             this.brain = new NerualNetwork(
-                [this.sensors.rayCount,6,4]
+                [this.sensors.rayCount,6,5]
             );
         }
         this.controls = new Controls(controlType); 
@@ -58,8 +58,7 @@ export class Car{
                 this.controls.left = output[1];
                 this.controls.right = output[2];
                 this.controls.down = output[3];
-
-                // this.controls.nitro = output[4];
+                this.controls.nitro = output[4];
             }
         }
     } 
@@ -183,7 +182,8 @@ export class Car{
     }
 
 
-    draw(ctx){
+    draw(ctx,drawSensor = false){
+        // set alpha to 0.2
 
         if(this.damaged){
             ctx.fillStyle = 'gray';
@@ -244,19 +244,20 @@ export class Car{
             this.drawTail(ctx, this.tailPoints);
         }
 
-        // Debug: 标注车速 及 位置 及 角度
-        ctx.fillStyle = 'black';
-        ctx.font = '20px Arial';
-        ctx.fillText(`Speed: ${this.speed.toFixed(2)}`, this.x + 20, this.y);
-        ctx.fillText(`Position: (${this.x.toFixed(2)}, ${this.y.toFixed(2)})`, this.x + 20, this.y + 20);
-        ctx.fillText(`Angle: ${this.angle.toFixed(2)}`, this.x + 20, this.y + 40);
-        if(this.damaged){
-            ctx.fillStyle = 'red';
-            ctx.font = '20px Arial';
-            ctx.fillText(`Damaged`, this.x + 20, this.y + 60);
-        }
 
-        if(this.sensors){
+
+        if(this.sensors && drawSensor){
+            // Debug: 标注车速 及 位置 及 角度
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            ctx.fillText(`Speed: ${this.speed.toFixed(2)}`, this.x + 20, this.y);
+            ctx.fillText(`Position: (${this.x.toFixed(2)}, ${this.y.toFixed(2)})`, this.x + 20, this.y + 20);
+            ctx.fillText(`Angle: ${this.angle.toFixed(2)}`, this.x + 20, this.y + 40);
+            if(this.damaged){
+                ctx.fillStyle = 'red';
+                ctx.font = '20px Arial';
+                ctx.fillText(`Damaged`, this.x + 20, this.y + 60);
+            }
             this.sensors.draw(ctx);
         }
 

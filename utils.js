@@ -44,3 +44,16 @@ export function getRGBA(value){
     const B = value > 0 ? 0 : 255;
     return `rgba(${R},${G},${B},${alpha})`;
 }
+
+export function save(name, data){
+    // localStorage.setItem('bestCar', JSON.stringify(bestCarData));
+    localStorage.setItem(name, JSON.stringify(data));
+}
+
+export function load(name){
+    return JSON.parse(localStorage.getItem(name));
+}
+
+export function remove(name){
+    localStorage.removeItem(name);
+}
