@@ -25,7 +25,7 @@ const networkCtx = networkCanvas.getContext('2d');
 let road = new Road(carCanvas.width/2, carCanvas.width * 0.9);
 // create car
 // let car = new Car(road.getLineCenter(0), 100, 30, 60,"KEYS");
-const cars = generateCars(50);
+const cars = generateCars(100);
 if(localStorage.getItem("bestBrain")){
     for(let i=0;i<cars.length;i++){
         cars[i].brain=load("bestBrain");
@@ -35,7 +35,7 @@ if(localStorage.getItem("bestBrain")){
     }
 }
 let bestCar = cars[0];
-const traffic = [
+let traffic = [
     new Car(road.getLineCenter(randomLine(3)), -1200, 30, 60,"DUMMY",Math.random()*10),
     new Car(road.getLineCenter(randomLine(3)), -600, 30, 60,"DUMMY",Math.random()*10),
     new Car(road.getLineCenter(randomLine(3)), -800, 30, 60,"DUMMY",Math.random()*10),
@@ -43,7 +43,21 @@ const traffic = [
     new Car(road.getLineCenter(randomLine(3)), -1800, 30, 60,"DUMMY",Math.random()*10),
     new Car(road.getLineCenter(randomLine(3)), -2100, 30, 60,"DUMMY",Math.random()*10),
     new Car(road.getLineCenter(randomLine(3)), -2400, 30, 60,"DUMMY",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -2700, 30, 60,"DUMMY",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -3000, 30, 60,"DUMMY",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -3300, 30, 60,"DUMMY",Math.random()*10),
 ];
+
+function updateTraffic(bestCar,radius,num = 5){
+    // 在 bestCar 的前方 radius 之内生成车辆 并移除超出范围的车辆
+
+    traffic = traffic.filter(t => t.y < bestCar.y + radius);
+
+    while(traffic.length < num){
+        traffic.push(new Car(road.getLineCenter(randomLine(3)), bestCar.y - radius, 30, 60,"DUMMY",Math.random()*10));
+    }
+
+}
 
 function randomLine(range){
     return Math.floor(Math.random()*range);
@@ -99,5 +113,7 @@ function gameLoop(){
 
     carCtx.restore();
     Visualizer.drawNetwork(networkCtx, bestCar.brain);
+
+    updateTraffic(bestCar,900);
     requestAnimationFrame(gameLoop);
 }
