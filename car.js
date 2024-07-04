@@ -29,7 +29,7 @@ export class Car{
         if(controlType !== "DUMMY"){
             this.sensors = new Sensor(this);
             this.brain = new NerualNetwork(
-                [this.sensors.rayCount,6,5]
+                [this.sensors.rayCount,9,5,5]
             );
         }
         this.controls = new Controls(controlType); 

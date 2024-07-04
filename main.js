@@ -16,7 +16,7 @@ carCanvas.width = 200;
 
 const networkCanvas = document.getElementById('networkCanvas');
 networkCanvas.height = window.innerHeight;
-networkCanvas.width = 400;
+networkCanvas.width = 600;
 
 const carCtx = carCanvas.getContext('2d');
 const networkCtx = networkCanvas.getContext('2d');
@@ -36,12 +36,18 @@ if(localStorage.getItem("bestBrain")){
 }
 let bestCar = cars[0];
 const traffic = [
-    new Car(road.getLineCenter(0), -200, 30, 60,"DUMMY",Math.random()*10),
-    new Car(road.getLineCenter(1), -600, 30, 60,"DUMMY",Math.random()*10),
-    new Car(road.getLineCenter(2), 300, 30, 60,"DUMMY",Math.random()*10),
-    new Car(road.getLineCenter(2), -1500, 30, 60,"DUMMY",Math.random()*10),
-    new Car(road.getLineCenter(2), -1800, 30, 60,"DUMMY",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -1200, 30, 60,"DUMMY",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -600, 30, 60,"DUMMY",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -800, 30, 60,"DUMMY",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -1500, 30, 60,"DUMMY",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -1800, 30, 60,"DUMMY",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -2100, 30, 60,"DUMMY",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -2400, 30, 60,"DUMMY",Math.random()*10),
 ];
+
+function randomLine(range){
+    return Math.floor(Math.random()*range);
+}
 
 
 // add event listener to the button
@@ -51,7 +57,7 @@ saveButton.addEventListener('click', () => {
 
 removeButton.addEventListener('click', () => {
     remove("bestBrain");
-});
+})
 
 
 // game loop
