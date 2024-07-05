@@ -54,6 +54,13 @@ export function load(name){
     return JSON.parse(localStorage.getItem(name));
 }
 
+export function downLoad(name, data){
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], {type: 'application/json'}));
+    a.download = name;
+    a.click();
+}
+
 export function remove(name){
     localStorage.removeItem(name);
 }
@@ -80,4 +87,8 @@ export function debounce(fn, delay){
             fn.apply(this, arguments);
         }, delay);
     }
+}
+
+export function randomLine(range){
+    return Math.floor(Math.random()*range);
 }

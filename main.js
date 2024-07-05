@@ -1,14 +1,14 @@
 import { Car } from "./car.js";
 import { Road } from "./road.js";
 import { Visualizer } from "./visualizer.js";
-import { save,remove,load,debounce,throttle } from "./utils.js";
+import { save, remove, load, downLoad, randomLine } from "./utils.js";
 import { NerualNetwork } from "./network.js";
 
 // get the button save and remove
 const saveButton = document.getElementById('save');
 const removeButton = document.getElementById('discard');
-
-
+const downloadButton = document.getElementById('download');
+const loadButton = document.getElementById('loadpre');
 
 const carCanvas = document.getElementById('carCanvas');
 carCanvas.height = window.innerHeight;
@@ -34,17 +34,18 @@ if(localStorage.getItem("bestBrain")){
     }
 }
 let bestCar = cars[0];
+
 let traffic = [
-    new Car(road.getLineCenter(randomLine(3)), -1200, 30, 60,"DUMMY",Math.random()*10),
-    new Car(road.getLineCenter(randomLine(3)), -600, 30, 60,"DUMMY",Math.random()*10),
-    new Car(road.getLineCenter(randomLine(3)), -800, 30, 60,"DUMMY",Math.random()*10),
-    new Car(road.getLineCenter(randomLine(3)), -1500, 30, 60,"DUMMY",Math.random()*10),
-    new Car(road.getLineCenter(randomLine(3)), -1800, 30, 60,"DUMMY",Math.random()*10),
-    new Car(road.getLineCenter(randomLine(3)), -2100, 30, 60,"DUMMY",Math.random()*10),
-    new Car(road.getLineCenter(randomLine(3)), -2400, 30, 60,"DUMMY",Math.random()*10),
-    new Car(road.getLineCenter(randomLine(3)), -2700, 30, 60,"DUMMY",Math.random()*10),
-    new Car(road.getLineCenter(randomLine(3)), -3000, 30, 60,"DUMMY",Math.random()*10),
-    new Car(road.getLineCenter(randomLine(3)), -3300, 30, 60,"DUMMY",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -1200, 30, 60,"AI",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -600, 30, 60,"AI",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -800, 30, 60,"AI",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -1500, 30, 60,"AI",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -1800, 30, 60,"AI",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -2100, 30, 60,"AI",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -2400, 30, 60,"AI",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -2700, 30, 60,"AI",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -3000, 30, 60,"AI",Math.random()*10),
+    new Car(road.getLineCenter(randomLine(3)), -3300, 30, 60,"AI",Math.random()*10),
 ];
 
 function updateTraffic(bestCar,radius,num = 5){
@@ -63,11 +64,6 @@ function updateTraffic(bestCar,radius,num = 5){
 
 }
 
-function randomLine(range){
-    return Math.floor(Math.random()*range);
-}
-
-
 // add event listener to the button
 saveButton.addEventListener('click', () => {
     save("bestBrain",bestCar.brain);
@@ -77,6 +73,13 @@ removeButton.addEventListener('click', () => {
     remove("bestBrain");
 })
 
+downloadButton.addEventListener('click', () => {
+    downLoad("bestBrain",bestCar.brain);
+})
+
+loadButton.addEventListener('click', () => {
+    loadpre();
+});
 
 // game loop
 gameLoop();
@@ -89,20 +92,21 @@ function generateCars(N){
     return cars;
 }
 
-function gameLoop(){
+function update(){
     traffic.forEach(t => {
         t.update(road.borders,[bestCar]);
     });
 
-    // Car 中剔除 damaged 的车辆 及速度小于3的车辆
     cars = cars.filter(c => !c.damaged);
 
     cars.forEach(c => {
         c.update(road.borders,traffic);
     });
-
     bestCar = cars.reduce((a,b) => a.y < b.y ? a : b);
+    updateTraffic(bestCar,900);
+}
 
+function rander(){
     carCtx.clearRect(0, 0, carCanvas.width, carCanvas.height);
     networkCtx.clearRect(0, 0, networkCanvas.width, networkCanvas.height);
     carCtx.save();
@@ -124,9 +128,24 @@ function gameLoop(){
     carCtx.restore();
 
     Visualizer.drawNetwork(networkCtx, bestCar.brain);
+}
 
-    updateTraffic(bestCar,900);
-
+function gameLoop(){
+    update();
+    rander();
     requestAnimationFrame(gameLoop);
 }
 
+function loadpre(){
+    // 若 localStorage 为空则 加载预训练好的神经网络 写入到 localStorage 中
+    // 加载地址为 /bestBrain.json
+    if(!localStorage.getItem("bestBrain")){
+        fetch("bestBrain.json")
+            .then(res => res.json())
+            .then(data => {
+                localStorage.setItem("bestBrain",JSON.stringify(data));
+            });
+    }else{
+        console.log("bestBrain is already in localStorage, you can delete it by remove button");
+    }
+}
