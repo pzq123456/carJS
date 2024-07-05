@@ -1,7 +1,7 @@
 import { Car } from "./car.js";
 import { Road } from "./road.js";
 import { Visualizer } from "./visualizer.js";
-import { save,remove,load } from "./utils.js";
+import { save,remove,load,debounce,throttle } from "./utils.js";
 import { NerualNetwork } from "./network.js";
 
 // get the button save and remove
@@ -23,14 +23,13 @@ const networkCtx = networkCanvas.getContext('2d');
 
 
 let road = new Road(carCanvas.width/2, carCanvas.width * 0.9);
-// create car
-// let car = new Car(road.getLineCenter(0), 100, 30, 60,"KEYS");
-const cars = generateCars(100);
+
+let cars = generateCars(100);
 if(localStorage.getItem("bestBrain")){
     for(let i=0;i<cars.length;i++){
         cars[i].brain=load("bestBrain");
         if(i!=0){
-            NerualNetwork.mutate(cars[i].brain,0.1);
+            NerualNetwork.mutate(cars[i].brain,0.05);
         }
     }
 }
@@ -49,12 +48,17 @@ let traffic = [
 ];
 
 function updateTraffic(bestCar,radius,num = 5){
-    // 在 bestCar 的前方 radius 之内生成车辆 并移除超出范围的车辆
-
-    traffic = traffic.filter(t => t.y < bestCar.y + radius);
+    // 查询缓存将 bestCar 的 brain 赋予 traffic 中的车辆
+    if(localStorage.getItem("bestBrain")){
+        for(let i=0;i<traffic.length;i++){
+            traffic[i].brain=load("bestBrain");
+        }
+    }
+    // 使用绝对值是因为 y 轴是向下的
+    traffic = traffic.filter(t => Math.abs(t.y - bestCar.y) < radius);
 
     while(traffic.length < num){
-        traffic.push(new Car(road.getLineCenter(randomLine(3)), bestCar.y - radius, 30, 60,"DUMMY",Math.random()*10));
+        traffic.push(new Car(road.getLineCenter(randomLine(3)), bestCar.y - radius - Math.random()*500, 30, 50,"AI", 10));
     }
 
 }
@@ -80,19 +84,23 @@ gameLoop();
 function generateCars(N){
     const cars = [];
     for(let i=0;i<N;i++){
-        cars.push(new Car(road.getLineCenter(1), 0, 30, 60,"AI",Math.random()*10));
+        cars.push(new Car(road.getLineCenter(1), 0, 30, 60,"AI"));
     }
     return cars;
 }
 
 function gameLoop(){
     traffic.forEach(t => {
-        t.update(road.borders,[]);
+        t.update(road.borders,[bestCar]);
     });
+
+    // Car 中剔除 damaged 的车辆 及速度小于3的车辆
+    cars = cars.filter(c => !c.damaged);
 
     cars.forEach(c => {
         c.update(road.borders,traffic);
     });
+
     bestCar = cars.reduce((a,b) => a.y < b.y ? a : b);
 
     carCtx.clearRect(0, 0, carCanvas.width, carCanvas.height);
@@ -106,14 +114,19 @@ function gameLoop(){
     });
 
     carCtx.globalAlpha = 0.2;
+
     cars.forEach(c => {
         c.draw(carCtx, c === bestCar);
     });
+
     carCtx.globalAlpha = 1;
 
     carCtx.restore();
+
     Visualizer.drawNetwork(networkCtx, bestCar.brain);
 
     updateTraffic(bestCar,900);
+
     requestAnimationFrame(gameLoop);
 }
+

@@ -3,9 +3,9 @@ import {getIntersection, lerp} from './utils.js';
 export class Sensor{
     constructor(car){
         this.car = car;
-        this.rayCount = 7
-        this.rayLength = 450;
-        this.raySpread = Math.PI / 2; // 45 degrees
+        this.rayCount = 9
+        this.rayLength = 200;
+        this.raySpread = Math.PI/2; // 45 degrees
 
         this.rays = new Array(this.rayCount).fill(null).map(() => [{x: 0, y: 0}, {x: 0, y: 0}]);
         this.readings = new Array(this.rayCount).fill(0);

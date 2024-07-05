@@ -4,7 +4,7 @@ import { polysIntersect } from "./utils.js";
 import { NerualNetwork } from "./network.js";
 
 export class Car{
-    constructor(x,y,width,height,controlType,maxSpeed = 10){
+    constructor(x,y,width,height,controlType,maxSpeed = 15){
         this.x = x;
         this.y = y;
         this.width = width;
@@ -29,7 +29,7 @@ export class Car{
         if(controlType !== "DUMMY"){
             this.sensors = new Sensor(this);
             this.brain = new NerualNetwork(
-                [this.sensors.rayCount,9,7,5]
+                [this.sensors.rayCount,12,8,5]
             );
         }
         this.controls = new Controls(controlType); 
@@ -105,7 +105,7 @@ export class Car{
     #move(){
         if(this.controls.up){
             if(this.controls.nitro){
-                this.speed = this.speed < this.maxSpeed ? this.speed + this.acceleration * 20 : this.speed;
+                this.speed = this.speed < this.maxSpeed ? this.speed + this.acceleration * Math.random() * 30 : this.speed;
             }else{
                 this.speed = this.speed < this.maxSpeed ? this.speed + this.acceleration : this.speed;
             }
@@ -232,9 +232,9 @@ export class Car{
         }
 
         if(this.controls.nitro){
-            ctx.fillStyle = 'red';
-            ctx.font = '20px Arial';
-            ctx.fillText('NITRO', this.x + 20, this.y + 60);
+            // ctx.fillStyle = 'red';
+            // ctx.font = '20px Arial';
+            // ctx.fillText('NITRO', this.x + 20, this.y + 60);
 
             // 更新和绘制尾迹
             this.updateTail(this.tailPoints, { x: this.polygon[2].x, y: this.polygon[2].y }, 50);
@@ -250,9 +250,9 @@ export class Car{
             // Debug: 标注车速 及 位置 及 角度
             ctx.fillStyle = 'black';
             ctx.font = '20px Arial';
-            ctx.fillText(`Speed: ${this.speed.toFixed(2)}`, this.x + 20, this.y);
-            ctx.fillText(`Position: (${this.x.toFixed(2)}, ${this.y.toFixed(2)})`, this.x + 20, this.y + 20);
-            ctx.fillText(`Angle: ${this.angle.toFixed(2)}`, this.x + 20, this.y + 40);
+            ctx.fillText(`S: ${this.speed.toFixed(2)}`, this.x + 20, this.y);
+            ctx.fillText(`P: (${this.x.toFixed(2)}, ${this.y.toFixed(2)})`, this.x + 20, this.y + 20);
+            ctx.fillText(`A: ${this.angle.toFixed(2)}`, this.x + 20, this.y + 40);
             if(this.damaged){
                 ctx.fillStyle = 'red';
                 ctx.font = '20px Arial';
