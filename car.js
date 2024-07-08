@@ -143,6 +143,10 @@ export class Car{
             if(this.angle < 0){
                 this.angle += 0.01;
             }
+
+            if(Math.abs(this.angle) < 0.01){
+                this.angle = 0;
+            }
         }
 
         this.x -= this.speed * Math.sin(this.angle);

@@ -9,11 +9,14 @@
 <body>
     <canvas id="carCanvas"></canvas>
     <div id="verticalButtons">
-        <button id="save">💾</button>
-        <button id="discard">🗑️</button>
-        <button id="download">📥</button>
-        <button id="loadpre">📤</button>
+        <button id="human" title="Try to drive the car yourself" class="selected">🤖</button>
+        <button id="save" title="Save the current car">💾</button>
+        <button id="discard" title="Discard the current car">🗑️</button>
+        <button id="download" title="Download the current car">📥</button>
+        <button id="loadpre" title="Load a pre-trained car">📤</button>
+        <button id="retry">🔄</button>
     </div>
+
     <canvas id="networkCanvas"></canvas>
     <script type="module" src="main.js"></script>
 </body>

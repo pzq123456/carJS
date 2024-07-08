@@ -5,10 +5,18 @@ import { save, remove, load, downLoad, randomLine } from "./utils.js";
 import { NerualNetwork } from "./network.js";
 
 // get the button save and remove
+const humanButton = document.getElementById('human');
 const saveButton = document.getElementById('save');
 const removeButton = document.getElementById('discard');
 const downloadButton = document.getElementById('download');
 const loadButton = document.getElementById('loadpre');
+const retryButton = document.getElementById('retry');
+
+
+// 检查当前网页的 localStorage 是否有 bestBrain 的缓存 若无则自动触发 loadpre 函数
+if(!localStorage.getItem("bestBrain")){
+    loadpre();
+}
 
 const carCanvas = document.getElementById('carCanvas');
 carCanvas.height = window.innerHeight;
@@ -24,7 +32,31 @@ const networkCtx = networkCanvas.getContext('2d');
 
 let road = new Road(carCanvas.width/2, carCanvas.width * 0.9);
 
-let cars = generateCars(100);
+let cars;
+
+// 控制 human 键为 switch 按钮 按下后为 true （同时绑定selected class）再次按下为 false（取消绑定）
+let human = false;
+humanButton.addEventListener('click', () => {
+    human = !human;
+    humanButton.classList.toggle('selected');
+    // 将图标替换为机器人 robot 或者人类 human
+    humanButton.innerText = !human ? '🤖' : '👨‍🚀';
+    let lastLoaction = {
+        x:cars[0].x,
+        y:cars[0].y
+    }
+ 
+    // 根据 human 的值来更新 cars 数组
+    cars = human ? generateCars(1, lastLoaction, "KEYS") : generateCars(50, lastLoaction, "AI");
+
+    
+});
+cars = human ? generateCars(1, 0, "KEYS") : generateCars(50, 0, "AI");
+
+
+
+
+
 if(localStorage.getItem("bestBrain")){
     for(let i=0;i<cars.length;i++){
         cars[i].brain=load("bestBrain");
@@ -81,13 +113,29 @@ loadButton.addEventListener('click', () => {
     loadpre();
 });
 
+retryButton.addEventListener('click', () => {
+    // 复位按钮 将 cars 数组中的所有车辆的 damaged 属性设置为 false
+    cars.forEach(c => {
+        // speed 取反
+        c.damaged = false;
+        // 重置车辆的位置
+        c.x = road.getLineCenter(1);
+        c.y = 0;
+    });
+});
+
+
 // game loop
 gameLoop();
 
-function generateCars(N){
+function generateCars(N, location = null, type="AI"){
     const cars = [];
     for(let i=0;i<N;i++){
-        cars.push(new Car(road.getLineCenter(1), 0, 30, 60,"AI"));
+        if(location){
+            cars.push(new Car(location.x, location.y, 30, 60, type));
+        }else{
+            cars.push(new Car(road.getLineCenter(1), 0, 30, 60, type));
+        }
     }
     return cars;
 }
@@ -97,7 +145,7 @@ function update(){
         t.update(road.borders,[bestCar]);
     });
 
-    cars = cars.filter(c => !c.damaged);
+    // cars = cars.filter(c => !c.damaged);
 
     cars.forEach(c => {
         c.update(road.borders,traffic);
